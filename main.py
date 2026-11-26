@@ -30,15 +30,20 @@ def pick_output_dir() -> Path:
 
 
 def check_line(text: str) -> str:
-    """Keep only a single non-blank line inside the gate's limits."""
-    cleaned = text.strip()
-    if not cleaned:
+    """Keep only a single non-blank line inside the gate's limits.
+
+    Leading or trailing whitespace is refused outright: the entry is
+    stored byte for byte, so nothing is silently trimmed away.
+    """
+    if text != text.strip():
+        raise SystemExit("refusing to write an entry with edge whitespace")
+    if not text:
         raise SystemExit("refusing to write a blank entry")
-    if any(ch in cleaned for ch in ("\n", "\r")):
+    if any(ch in text for ch in ("\n", "\r")):
         raise SystemExit("entry must be exactly one line")
-    if len(cleaned) > 140:
-        raise SystemExit(f"entry is {len(cleaned)} chars, over the 140 limit")
-    return cleaned
+    if len(text) > 140:
+        raise SystemExit(f"entry is {len(text)} chars, over the 140 limit")
+    return text
 
 
 def save(text: str) -> Path:
